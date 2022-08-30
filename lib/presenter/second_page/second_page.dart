@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:front_end/presenter/third_page/third_page.dart';
 
@@ -12,6 +13,58 @@ class SecondPage extends StatelessWidget {
     final emailController = TextEditingController();
     final passwordController = TextEditingController();
     final passwordCheckController = TextEditingController();
+
+    var url = "http://192.168.0.99/api/Usuario";
+
+    Future<void> postLogin() async {
+      Map<String, dynamic> headers = {
+        "accept": 'Application/json',
+      };
+
+      Map<String, dynamic> body = {
+        'nome': nameController.text,
+        'email': emailController.text,
+        'senha': passwordController.text
+      };
+      await Dio().post(
+        url,
+        data: body,
+        options: Options(headers: headers),
+      );
+    }
+
+    String? verifySignUp() {
+      if (passwordController.text != passwordCheckController.text) {
+        return "As senhas deve ser iguais";
+      } else if (nameController.text.isEmpty ||
+          emailController.text.isEmpty ||
+          passwordController.text.isEmpty ||
+          passwordCheckController.text.isEmpty) {
+        return "Todos os campos devem ser preenchidos";
+      } 
+      return null;
+    }
+
+    Future<Widget?> createAccount() async {
+      String? text = verifySignUp();
+      if (text != null) {
+        passwordCheckController.clear();
+        passwordController.clear();
+        return await showDialog(
+          context: context,
+          builder: (context) {
+            return  AlertDialog(
+              title: Text(text),
+            );
+          },
+        );
+      }
+      postLogin();
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const ThirdPage()),
+      );
+      return null;
+    }
 
     return Scaffold(
       backgroundColor: Colors.deepPurple,
@@ -87,9 +140,7 @@ class SecondPage extends StatelessWidget {
                 minWidth: 350,
                 height: 50,
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const ThirdPage()),
-                  );
+                  createAccount();
                 },
                 child: const Text(
                   "SIGN UP",
